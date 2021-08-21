@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+	<title></title>
+</head>
+<body> 
+	<table id="table" class="table">
+		<thead id="thead">
+
+		</thead>
+		<tbody id="tbody">
+			
+		</tbody>
+	</table>
+	<script type="text/javascript">
+		var _table_ = document.getElementById("table")
+		var thead = document.getElementById("thead")
+		var tbody = document.getElementById("tbody"),
+
+		  _tr_ = document.createElement('tr'),
+		  _th_ = document.createElement('th'),
+		  _td_ = document.createElement('td');
+
+		_table_.setAttribute("class","table")
+
+		// Builds the HTML Table out of myList json data from Ivy restful service.
+		function buildHtmlTable(arr, columns) { 
+		  columns = addAllColumnHeaders(arr, table, columns);
+		  for (var i = 0, maxi = arr.length; i < maxi; ++i) {
+		    var tr = _tr_.cloneNode(false);
+		    for (var j = 0, maxj = columns.length; j < maxj; ++j) {
+		      var td = _td_.cloneNode(false);
+		      cellValue = arr[i][columns[j]];
+		      td.appendChild(document.createTextNode(arr[i][columns[j]] || ''));
+		      tr.appendChild(td);
+		    }
+		    tbody.appendChild(tr);
+		  } 
+		}
+
+		// Adds a header row to the table and returns the set of columns.
+		// Need to do union of keys from all records as some records may not contain
+		// all records
+		function addAllColumnHeaders(arr, table, columns) { 
+		  var columnSet = [],
+		    tr = _tr_.cloneNode(false);
+		    if (columns == undefined){
+			  for (var i = 0, l = arr.length; i < l; i++) {
+			    for (var key in arr[i]) {
+			      if (arr[i].hasOwnProperty(key) && columnSet.indexOf(key) === -1) {
+			        columnSet.push(key);
+			        var th = _th_.cloneNode(false);
+			        th.appendChild(document.createTextNode(key));
+			        tr.appendChild(th);
+			      }
+			    }
+			  } 
+		    } else {
+			    for (var idx in columns) { 
+			    	const key = columns[idx]
+			        columnSet.push(key);
+			        var th = _th_.cloneNode(false);
+			        th.appendChild(document.createTextNode(key));
+			        tr.appendChild(th); 
+			    }
+
+		    }
+		  thead.appendChild(tr);
+		  return columnSet;
+		}
+
+
+		var load = (async () => {
+			var hash = await fetch("https://getpantry.cloud/apiv1/pantry/c81d6442-fd09-4dc3-841d-f1d54af35d09/basket/public", { method: "GET" }) 
+			var hash = await hash.json()
+			hash = hash.Hash
+			var res = await fetch("https://ipfs.infura.io:5001/api/v0/cat?arg=" + hash, { method: "POST" }) 
+			var data = await res.json()
+		   
+		  	console.log(data) 
+ 
+		  	$("thead").html("")
+		  	$("tbody").html("")
+
+			buildHtmlTable(data, ["received_ts", "txid", "address", "status"]);
+
+			setTimeout(load, 5000)
+
+		});
+
+		load() 
+	</script> 
+</body>
+</html>
